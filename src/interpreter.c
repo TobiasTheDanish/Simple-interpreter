@@ -63,6 +63,10 @@ token_T* I_get_next_token(interpreter_T* interpreter)
 			return advance_with_token(interpreter, token_init(T_PLUS, char_to_string(interpreter->current_char)));
 		case '-':
 			return advance_with_token(interpreter, token_init(T_MINUS, char_to_string(interpreter->current_char)));
+		case '*':
+			return advance_with_token(interpreter, token_init(T_MULTIPLY, char_to_string(interpreter->current_char)));
+		case '/':
+			return advance_with_token(interpreter, token_init(T_DIVIDE, char_to_string(interpreter->current_char)));
 	} 
 
 	return token_init(T_EOF, "\0");
@@ -152,20 +156,35 @@ token_T* get_operation(interpreter_T* interpreter)
 int I_integer_expr(interpreter_T* interpreter) 
 {
 	int left_val = get_int_val(interpreter);
-	token_T* operation = get_operation(interpreter);
-	int right_val = get_int_val(interpreter);
 
-	switch (operation->type) {
-		case T_PLUS:
-			return left_val + right_val;
+	while (interpreter->current_token->type != T_EOF) {
+		token_T* operation = get_operation(interpreter);
+		int right_val = get_int_val(interpreter);
 
-		case T_MINUS:
-			return left_val - right_val;
+		switch (operation->type) {
+			case T_PLUS:
+				left_val = left_val + right_val;
+				break;
 
-		default:
-			printf("Non implemented operation encountered!");
-			return 0;
+			case T_MINUS:
+				left_val = left_val - right_val;
+				break;
+
+			case T_MULTIPLY:
+				left_val = left_val * right_val;
+				break;
+
+			case T_DIVIDE:
+				left_val = left_val / right_val;
+				break;
+
+			default:
+				printf("Non implemented operation encountered! Type: %d\n", operation->type);
+				return 0;
+		}
 	}
+
+	return left_val;
 }
 
 int I_expr(interpreter_T* interpreter)
