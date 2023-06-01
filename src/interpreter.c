@@ -170,29 +170,54 @@ token_T* get_operation(interpreter_T* interpreter)
 	return operation;
 }
 
-int I_integer_expr(interpreter_T* interpreter) 
+int I_term(interpreter_T *interpreter)
 {
-	int left_val = get_int_val(interpreter);
+	int result = I_factor(interpreter);
+	
+	while (token_is_operation(interpreter->current_token) && operation_is_multiplicative(interpreter->current_token)) {
+		token_T* op = get_operation(interpreter);
 
-	while (interpreter->current_token->type != T_EOF) {
-		token_T* operation = get_operation(interpreter);
-		int right_val = get_int_val(interpreter);
-
-		switch (operation->type) {
-			case T_PLUS:
-				left_val = left_val + right_val;
-				break;
-
-			case T_MINUS:
-				left_val = left_val - right_val;
-				break;
-
+		switch (op->type) {
 			case T_MULTIPLY:
-				left_val = left_val * right_val;
+				result *= I_factor(interpreter);
 				break;
 
 			case T_DIVIDE:
-				left_val = left_val / right_val;
+				result /= I_factor(interpreter);
+				break;
+
+			default:
+				printf("Non implemented operation encountered! Type: %d\n", op->type);
+				return 0;
+		}
+	}
+
+	return result;
+}
+
+int I_factor(interpreter_T* interpreter)
+{
+	int val = atoi(interpreter->current_token->value);
+
+	I_eat(interpreter, T_INTEGER);
+
+	return val;
+}
+
+int integer_expr(interpreter_T* interpreter) 
+{
+	int result = I_term(interpreter);
+
+	while (token_is_operation(interpreter->current_token) && operation_is_additive(interpreter->current_token)) {
+		token_T* operation = get_operation(interpreter);
+
+		switch (operation->type) {
+			case T_PLUS:
+				result = result + I_term(interpreter);
+				break;
+
+			case T_MINUS:
+				result = result - I_term(interpreter);
 				break;
 
 			default:
@@ -201,14 +226,14 @@ int I_integer_expr(interpreter_T* interpreter)
 		}
 	}
 
-	return left_val;
+	return result;
 }
 
 int I_expr(interpreter_T* interpreter)
 {
 	switch (interpreter->current_token->type) {
 		case T_INTEGER:
-			return I_integer_expr(interpreter);
+			return integer_expr(interpreter);
 
 		default:
 			return 0;
