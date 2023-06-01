@@ -7,6 +7,8 @@ typedef struct TOKEN_STRUCT
 	{
 		T_STRING,
 		T_INTEGER,
+		T_LPAREN,
+		T_RPAREN,
 		T_PLUS,
 		T_MINUS,
 		T_MULTIPLY, 

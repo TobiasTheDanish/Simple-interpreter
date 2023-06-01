@@ -59,6 +59,10 @@ token_T* I_get_next_token(interpreter_T* interpreter)
 		return I_collect_token(interpreter, V_NUMBER);
 	
 	switch (interpreter->current_char) {
+		case '(':
+			return advance_with_token(interpreter, token_init(T_LPAREN, char_to_string(interpreter->current_char)));
+		case ')':
+			return advance_with_token(interpreter, token_init(T_RPAREN, char_to_string(interpreter->current_char)));
 		case '+':
 			return advance_with_token(interpreter, token_init(T_PLUS, char_to_string(interpreter->current_char)));
 		case '-':
