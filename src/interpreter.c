@@ -177,11 +177,13 @@ token_T* get_operation(interpreter_T* interpreter)
 int I_term(interpreter_T *interpreter)
 {
 	int result = I_factor(interpreter);
-	
-	while (token_is_operation(interpreter->current_token) && operation_is_multiplicative(interpreter->current_token)) {
+
+	while (token_is_operation(interpreter->current_token) && operation_is_multiplicative(interpreter->current_token)) 
+	{
 		token_T* op = get_operation(interpreter);
 
-		switch (op->type) {
+		switch (op->type) 
+		{
 			case T_MULTIPLY:
 				result *= I_factor(interpreter);
 				break;
@@ -191,15 +193,14 @@ int I_term(interpreter_T *interpreter)
 				break;
 
 			default:
-				printf("Non implemented operation encountered! Type: %d\n", op->type);
-				return 0;
+				return result;
 		}
 	}
 
 	return result;
 }
 
-int I_factor(interpreter_T* interpreter)
+int get_int_value(interpreter_T* interpreter)
 {
 	int val = atoi(interpreter->current_token->value);
 
@@ -208,25 +209,45 @@ int I_factor(interpreter_T* interpreter)
 	return val;
 }
 
+int I_factor(interpreter_T* interpreter)
+{
+	switch (interpreter->current_token->type)
+	{
+		case T_LPAREN:
+			I_eat(interpreter, T_LPAREN);
+			int res = I_expr(interpreter);
+			I_eat(interpreter, T_RPAREN);
+			return res;
+
+		case T_INTEGER:
+			return get_int_value(interpreter);
+
+		default:
+			printf("Unexpected token type, in I_factor. Type: %d\n", interpreter->current_token->type);
+			return 0;
+	}
+}
+
 int integer_expr(interpreter_T* interpreter) 
 {
 	int result = I_term(interpreter);
 
-	while (token_is_operation(interpreter->current_token) && operation_is_additive(interpreter->current_token)) {
+	while (token_is_operation(interpreter->current_token) && operation_is_additive(interpreter->current_token)) 
+	{
 		token_T* operation = get_operation(interpreter);
 
-		switch (operation->type) {
+		switch (operation->type) 
+		{
 			case T_PLUS:
-				result = result + I_term(interpreter);
+				result += I_term(interpreter);
 				break;
 
 			case T_MINUS:
-				result = result - I_term(interpreter);
+				result -= I_term(interpreter);
 				break;
 
 			default:
-				printf("Non implemented operation encountered! Type: %d\n", operation->type);
-				return 0;
+				return result;
 		}
 	}
 
@@ -235,12 +256,5 @@ int integer_expr(interpreter_T* interpreter)
 
 int I_expr(interpreter_T* interpreter)
 {
-	switch (interpreter->current_token->type) {
-		case T_INTEGER:
-			return integer_expr(interpreter);
-
-		default:
-			return 0;
-	
-	}
+	return integer_expr(interpreter);
 }
