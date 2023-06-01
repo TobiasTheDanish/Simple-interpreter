@@ -135,13 +135,30 @@ void I_eat(interpreter_T* interpreter, int token_type)
 	}
 }
 
-int get_int_val(interpreter_T* interpreter)
+unsigned char token_is_operation(token_T* token)
 {
-	int val = atoi(interpreter->current_token->value);
+	unsigned char is_plus = token->type == T_PLUS;
+	unsigned char is_minus = token->type == T_MINUS;
+	unsigned char is_multiply = token->type == T_MULTIPLY;
+	unsigned char is_divide = token->type == T_DIVIDE;
 
-	I_eat(interpreter, T_INTEGER);
+	return is_plus || is_minus || is_multiply || is_divide;
+}
 
-	return val;
+unsigned char operation_is_additive(token_T* token)
+{
+	unsigned char is_plus = token->type == T_PLUS;
+	unsigned char is_minus = token->type == T_MINUS;
+
+	return is_plus || is_minus;
+}
+
+unsigned char operation_is_multiplicative(token_T* token)
+{
+	unsigned char is_multiply = token->type == T_MULTIPLY;
+	unsigned char is_divide = token->type == T_DIVIDE;
+
+	return is_multiply || is_divide;
 }
 
 token_T* get_operation(interpreter_T* interpreter)

@@ -25,5 +25,9 @@ token_T* I_collect_token(interpreter_T* interpreter, int type);
 
 void I_eat(interpreter_T* interpreter, int token_type);
 
+int I_factor(interpreter_T* interpreter);
+
+int I_term(interpreter_T* interpreter);
+
 int I_expr(interpreter_T* interpreter);
 #endif // !INTERPRETER_H
