@@ -1,8 +1,6 @@
 #include "include/interpreter.h"
 #include "include/token.h"
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 int main()
 {
