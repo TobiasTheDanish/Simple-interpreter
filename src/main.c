@@ -10,9 +10,7 @@ int main()
 
 	getline(&s, &len, stdin);
 
-	interpreter_T* interpreter = I_init(s);
+	interpreter_T* i = I_init(s);
 
-	printf("Result: %d\n", I_expr(interpreter));
-
-	return 0;
+	return I_run(i);
 }
