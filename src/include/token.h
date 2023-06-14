@@ -5,14 +5,29 @@ typedef struct TOKEN_STRUCT
 {
 	enum  
 	{
+		T_PROGRAM,
+		T_VAR,
+		T_COLON,
+		T_COMMA,
+		T_BEGIN,
+		T_END,
+		T_DOT,
+		T_ID,
+		T_ASSIGN,
+		T_SEMI,
 		T_STRING,
 		T_INTEGER,
+		T_REAL,
+		T_STRING_CONST,
+		T_INT_CONST,
+		T_REAL_CONST,
+		T_INT_DIV,
+		T_REAL_DIV,
 		T_LPAREN,
 		T_RPAREN,
 		T_PLUS,
 		T_MINUS,
 		T_MULTIPLY, 
-		T_DIVIDE,
 		T_EOF
 	} type;
 

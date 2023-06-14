@@ -1,11 +1,24 @@
 #include "include/parser.h"
 #include "include/ast_node.h"
 #include "include/token.h"
-#include <ctype.h>
+#include "include/strings.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
+#define NUM_KEYWORDS 7
+
+token_T keywords[NUM_KEYWORDS] = {
+	{ T_PROGRAM, "PROGRAM"},
+	{ T_VAR, "VAR"},
+	{ T_BEGIN, "BEGIN"},
+	{ T_END, "END"},
+	{ T_INT_DIV, "DIV"},
+	{ T_INTEGER, "INTEGER"},
+	{ T_REAL, "REAL"},
+};
 
 char* char_to_string(char c)
 {
@@ -47,34 +60,112 @@ void clear_whitespace(parser_T* parser)
 	}
 }
 
-token_T* P_get_next_token(parser_T* parser)
+void clear_comment(parser_T* parser) 
 {
-	clear_whitespace(parser);
+	advance(parser);
 
-	if (parser->pos >= strlen(parser->src)-1)
+	while (parser->current_char != '}') 
 	{
-		return token_init(T_EOF, "\0");
+		advance(parser);
 	}
 
-	if (isdigit(parser->current_char))
-		return P_collect_token(parser, V_NUMBER);
-	
-	switch (parser->current_char) {
-		case '(':
-			return advance_with_token(parser, token_init(T_LPAREN, char_to_string(parser->current_char)));
-		case ')':
-			return advance_with_token(parser, token_init(T_RPAREN, char_to_string(parser->current_char)));
-		case '+':
-			return advance_with_token(parser, token_init(T_PLUS, char_to_string(parser->current_char)));
-		case '-':
-			return advance_with_token(parser, token_init(T_MINUS, char_to_string(parser->current_char)));
-		case '*':
-			return advance_with_token(parser, token_init(T_MULTIPLY, char_to_string(parser->current_char)));
-		case '/':
-			return advance_with_token(parser, token_init(T_DIVIDE, char_to_string(parser->current_char)));
-	} 
+	advance(parser);
+}
+
+char P_peek(parser_T* parser)
+{
+	size_t peek_pos = parser->pos + 1;
+
+	if (peek_pos > strlen(parser->src) - 1)
+	{
+		printf("Tried to peek beyond end of file");
+		exit(1);
+	}
+	else 
+	{
+		return parser->src[peek_pos];
+	}
+}
+
+token_T* P_get_next_token(parser_T* parser)
+{
+	while (parser->current_char != '\0') 
+	{
+		clear_whitespace(parser);
+
+		if (parser->pos >= strlen(parser->src)-1)
+		{
+			//printf("parser->pos is greater than length of src\n");
+			return token_init(T_EOF, "\0");
+		}
+
+		if (isdigit(parser->current_char))
+			return P_collect_token(parser, V_NUMBER);
+
+		if (isalpha(parser->current_char) || parser->current_char == '_')
+			return P_collect_id(parser);
+
+		switch (parser->current_char) {
+			case '{':
+				clear_comment(parser);
+				continue;
+			case ':':
+				if (P_peek(parser) == '=') {
+					advance(parser);
+					return advance_with_token(parser, token_init(T_ASSIGN, ":="));
+				}
+				return advance_with_token(parser, token_init(T_COLON, char_to_string(parser->current_char)));
+			case '"':
+				return P_collect_token(parser, V_STRING);
+			case ',':
+				return advance_with_token(parser, token_init(T_COMMA, char_to_string(parser->current_char)));
+			case '.':
+				return advance_with_token(parser, token_init(T_DOT, char_to_string(parser->current_char)));
+			case ';':
+				return advance_with_token(parser, token_init(T_SEMI, char_to_string(parser->current_char)));
+			case '(':
+				return advance_with_token(parser, token_init(T_LPAREN, char_to_string(parser->current_char)));
+			case ')':
+				return advance_with_token(parser, token_init(T_RPAREN, char_to_string(parser->current_char)));
+			case '+':
+				return advance_with_token(parser, token_init(T_PLUS, char_to_string(parser->current_char)));
+			case '-':
+				return advance_with_token(parser, token_init(T_MINUS, char_to_string(parser->current_char)));
+			case '*':
+				return advance_with_token(parser, token_init(T_MULTIPLY, char_to_string(parser->current_char)));
+			case '/':
+				return advance_with_token(parser, token_init(T_REAL_DIV, char_to_string(parser->current_char)));
+		} 
+	}
 
 	return token_init(T_EOF, "\0");
+}
+
+token_T* get_id_token(char* id)
+{
+	for (size_t i = 0; i < NUM_KEYWORDS; i++) 
+	{
+		if (strcmp(to_lower(keywords[i].value), to_lower(id)) == 0)
+				return &keywords[i];
+	}
+
+	return token_init(T_ID, id);
+}
+
+token_T* P_collect_id(parser_T* parser)
+{
+	char* id = calloc(2, sizeof(char));
+	size_t i = 0;
+
+	while (isalnum(parser->current_char) || parser->current_char == '_') {
+		id[i] = parser->current_char;
+		i = i + 1;
+		id = realloc(id, (i+1)* sizeof(char));
+
+		advance(parser);
+	}
+
+	return get_id_token(id);
 }
 
 token_T* collect_string(parser_T* parser)
@@ -108,7 +199,28 @@ token_T* collect_number(parser_T* parser)
 		advance(parser);
 	}
 
-	return token_init(T_INTEGER, val);
+	if (parser->current_char == '.') 
+	{
+		val[length] = parser->current_char;
+		length += 1;
+		val = realloc(val, (length + 1) * sizeof(char));
+
+		advance(parser);
+
+		while (isdigit(parser->current_char)) 
+		{
+			//printf("%c\n", parser->current_char);
+			val[length] = parser->current_char;
+			length += 1;
+			val = realloc(val, (length + 1) * sizeof(char));
+
+			advance(parser);
+		}
+
+		return token_init(T_REAL_CONST, val);
+	}
+
+	return token_init(T_INT_CONST, val);
 }
 
 token_T* P_collect_token(parser_T* parser, int type)
@@ -179,26 +291,39 @@ ast_node_T* get_int_node(parser_T* parser)
 {
 	ast_node_T* node = init_num(parser->current_token);
 
-	P_eat(parser, T_INTEGER);
+	P_eat(parser, T_INT_CONST);
 
 	return node;
 }
 
 ast_node_T* P_factor(parser_T* parser)
 {
-	switch (parser->current_token->type)
+	token_T* token = parser->current_token;
+
+	switch (token->type)
 	{
+		case T_PLUS:
+			P_eat(parser, T_PLUS);
+			return init_unary_op(token, P_factor(parser));
+
+		case T_MINUS:
+			P_eat(parser, T_MINUS);
+			return init_unary_op(token, P_factor(parser));
+			
 		case T_LPAREN:
 			P_eat(parser, T_LPAREN);
 			ast_node_T* node = P_expr(parser);
 			P_eat(parser, T_RPAREN);
 			return node;
 
-		case T_INTEGER:
+		case T_INT_CONST:
 			return get_int_node(parser);
 
+		case T_ID:
+			return (ast_node_T*) P_variable(parser);
+
 		default:
-			printf("Unexpected token type, in P_factor. Type: %d\n", parser->current_token->type);
+			printf("Unexpected token type, in P_factor. Type: %d current_char: %c\n", token->type, parser->current_char);
 			return 0;
 	}
 }
@@ -233,5 +358,98 @@ ast_node_T* P_expr(parser_T* parser)
 
 ast_node_T* P_parse(parser_T* parser)
 {
-	return P_expr(parser);
+	ast_node_T* program = P_program(parser);
+
+	if (parser->current_token->type != T_EOF) 
+	{
+		printf("Program did not reach end of file!\n");
+	}
+
+	return program;
+}
+
+ast_node_T* P_program(parser_T* parser)
+{
+	ast_node_T* node = P_compound_statement(parser);
+
+	P_eat(parser, T_DOT);
+
+	return node;
+}
+
+ast_node_T* P_compound_statement(parser_T* parser)
+{
+	P_eat(parser, T_BEGIN);
+	compound_node_T* comp = P_statement_list(parser);
+	P_eat(parser, T_END);
+
+	return (ast_node_T*) comp;
+}
+
+compound_node_T* P_statement_list(parser_T* parser)
+{
+	compound_node_T* comp = (compound_node_T*) init_comp();
+
+	ast_node_T* node = P_statement(parser);
+
+	comp->children[comp->child_count] = node;
+	comp->child_count++;
+	comp->children = realloc(comp->children, (comp->child_count + 1) * sizeof(ast_node_T*));
+
+	while (parser->current_token->type == T_SEMI) 
+	{
+		P_eat(parser, T_SEMI);
+
+		node = P_statement(parser);
+
+		comp->children[comp->child_count] = node;
+		comp->child_count++;
+		comp->children = realloc(comp->children, (comp->child_count + 1) * sizeof(ast_node_T*));
+	}
+
+	if (parser->current_token->type == T_ID) 
+	{
+		perror("Token type T_ID not allowed after parsing of statement");
+	}
+
+	return comp;
+}
+
+ast_node_T* P_statement(parser_T* parser)
+{
+	switch (parser->current_token->type) 
+	{
+		case T_BEGIN:
+			return P_compound_statement(parser);
+
+		case T_ID:
+			return P_assign_statement(parser);
+
+		default:
+			return P_empty(parser);
+	}
+}
+
+ast_node_T* P_assign_statement(parser_T* parser)
+{
+	var_node_T* left = P_variable(parser);
+	token_T* t = parser->current_token;
+	P_eat(parser, T_ASSIGN);
+	ast_node_T* right = P_expr(parser);
+	
+	return init_assign(t, left, right);
+}
+
+var_node_T* P_variable(parser_T* parser)
+{
+	var_node_T* var = init_var(parser->current_token);
+
+	P_eat(parser, T_ID);
+
+	return var;
+}
+
+ast_node_T* P_empty(parser_T* parser)
+{
+	return init_noop();
 }

@@ -7,7 +7,7 @@
 enum values
 {
 	V_STRING,
-	V_NUMBER
+	V_NUMBER,
 };
 
 typedef struct PARSER_STRUCT
@@ -20,9 +20,13 @@ typedef struct PARSER_STRUCT
 
 parser_T* P_init(char* src);
 
+char P_peek(parser_T* parser);
+
 token_T* P_get_next_token(parser_T* parser);
 
 token_T* P_collect_token(parser_T* parser, int type);
+
+token_T* P_collect_id(parser_T* parser);
 
 void P_eat(parser_T* parser, int token_type);
 
@@ -33,4 +37,18 @@ ast_node_T* P_term(parser_T* parser);
 ast_node_T* P_expr(parser_T* parser);
 
 ast_node_T* P_parse(parser_T* parser);
+
+ast_node_T* P_program(parser_T* parser);
+
+ast_node_T* P_compound_statement(parser_T* parser);
+
+compound_node_T* P_statement_list(parser_T* parser);
+
+ast_node_T* P_statement(parser_T* parser);
+
+ast_node_T* P_assign_statement(parser_T* parser);
+
+var_node_T* P_variable(parser_T* parser);
+
+ast_node_T* P_empty(parser_T* parser);
 #endif // !PARSER_H
