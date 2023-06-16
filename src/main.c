@@ -6,7 +6,7 @@
 
 int main()
 {
-	char* pascal = read_file("pascal/part-9-example.pas");
+	char* pascal = read_file("pascal/part-10-example.pas");
 	printf("pascal src:\n%s\n", pascal);
 
 	/*

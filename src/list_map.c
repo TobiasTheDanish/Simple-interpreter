@@ -1,4 +1,5 @@
 #include "include/list_map.h"
+#include "include/node_visitor.h"
 #include "include/strings.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@ struct list_map* init_list_map(size_t capacity)
 	return map;
 }
 
-bool list_map_insert(struct list_map* map, char* key, int val)
+bool list_map_insert(struct list_map* map, char* key, num_T val)
 {
 	if (map->count >= map->cap - 1)
 		return false;
@@ -38,7 +39,8 @@ bool list_map_insert(struct list_map* map, char* key, int val)
 
 	strcpy(map->kv_pairs[map->count]->key, key);
 	map->kv_pairs[map->count]->val = val;
-	printf("Added key: %s with val: %d\n", map->kv_pairs[map->count]->key, map->kv_pairs[map->count]->val);
+
+	//printf("Added key: %s with val: %d\n", map->kv_pairs[map->count]->key, map->kv_pairs[map->count]->val);
 
 	map->count += 1;
 
@@ -69,7 +71,19 @@ void list_map_print(struct list_map* map)
 {
 	for (size_t i = 0; i < map->count; i++)
 	{
-		printf("var #%zu: %s = %d\n", i, map->kv_pairs[i]->key, map->kv_pairs[i]->val);
+		char* key = map->kv_pairs[i]->key;
+		num_T val = map->kv_pairs[i]->val;
+
+		switch (val.type) 
+		{
+			case FLOAT:
+				printf("var #%zu: %s = %f\n", i, key, val.value.f);
+				break;
+
+			case INTEGER:
+				printf("var #%zu: %s = %d\n", i, key, val.value.i);
+				break;
+		}
 	}
 }
 

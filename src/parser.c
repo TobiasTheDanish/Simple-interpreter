@@ -257,7 +257,7 @@ unsigned char token_is_operation(token_T* token)
 	unsigned char is_plus = token->type == T_PLUS;
 	unsigned char is_minus = token->type == T_MINUS;
 	unsigned char is_multiply = token->type == T_MULTIPLY;
-	unsigned char is_divide = token->type == T_DIVIDE;
+	unsigned char is_divide = token->type == T_REAL_DIV || token->type == T_INT_DIV;
 
 	return is_plus || is_minus || is_multiply || is_divide;
 }
@@ -273,7 +273,7 @@ unsigned char operation_is_additive(token_T* token)
 unsigned char operation_is_multiplicative(token_T* token)
 {
 	unsigned char is_multiply = token->type == T_MULTIPLY;
-	unsigned char is_divide = token->type == T_DIVIDE;
+	unsigned char is_divide = token->type == T_REAL_DIV || token->type == T_INT_DIV;
 
 	return is_multiply || is_divide;
 }
@@ -285,15 +285,6 @@ token_T* get_operation(parser_T* parser)
 	P_eat(parser, operation->type);
 
 	return operation;
-}
-
-ast_node_T* get_int_node(parser_T* parser)
-{
-	ast_node_T* node = init_num(parser->current_token);
-
-	P_eat(parser, T_INT_CONST);
-
-	return node;
 }
 
 ast_node_T* P_factor(parser_T* parser)
@@ -317,8 +308,13 @@ ast_node_T* P_factor(parser_T* parser)
 			return node;
 
 		case T_INT_CONST:
-			return get_int_node(parser);
+			P_eat(parser, T_INT_CONST);
+			return init_num(token);
 
+		case T_REAL_CONST:
+			P_eat(parser, T_REAL_CONST);
+			return init_num(token);
+			
 		case T_ID:
 			return (ast_node_T*) P_variable(parser);
 
@@ -336,7 +332,7 @@ ast_node_T* P_term(parser_T *parser)
 	{
 		token_T* op = get_operation(parser);
 
-		left = init_bin_op(op, left, P_term(parser));
+		left = init_bin_op(op, left, P_factor(parser));
 	}
 
 	return left;
@@ -370,11 +366,92 @@ ast_node_T* P_parse(parser_T* parser)
 
 ast_node_T* P_program(parser_T* parser)
 {
-	ast_node_T* node = P_compound_statement(parser);
+	P_eat(parser, T_PROGRAM);
+	var_node_T* var = P_variable(parser);
+	char* name = var->name;
+
+	P_eat(parser, T_SEMI);
+
+	ast_node_T* block = P_block(parser);
+
+	ast_node_T* node = init_program(name, block);
 
 	P_eat(parser, T_DOT);
 
 	return node;
+}
+
+ast_node_T* P_block(parser_T* parser)
+{
+	return P_declarations(parser);
+}
+
+ast_node_T* P_declarations(parser_T* parser)
+{
+	vardecl_node_T** declarations = malloc(sizeof(vardecl_node_T*));
+	size_t count = 0;
+
+	if (parser->current_token->type == T_VAR) 
+	{
+		P_eat(parser, T_VAR);
+
+		while (parser->current_token->type == T_ID) 
+		{
+			declarations[count] = P_var_declartion(parser);
+			count += 1;
+			declarations = realloc(declarations, (count + 1) * sizeof(vardecl_node_T*));
+
+			P_eat(parser, T_SEMI);
+		}
+	}
+
+	return init_block(declarations, count, P_compound_statement(parser));
+}
+
+vardecl_node_T* P_var_declartion(parser_T* parser)
+{
+	var_node_T** var_nodes = malloc(sizeof(var_node_T*));
+	size_t count = 0;
+
+	var_nodes[count] = init_var(parser->current_token);
+	count += 1;
+
+	P_eat(parser, T_ID);
+
+	while (parser->current_token->type == T_COMMA) {
+		P_eat(parser, T_COMMA);
+
+		var_nodes = realloc(var_nodes, (count + 1) * sizeof(var_node_T*));
+		var_nodes[count] = init_var(parser->current_token);
+		count += 1;
+
+		P_eat(parser, T_ID);
+	}
+
+	P_eat(parser, T_COLON);
+	ast_node_T* type = P_type_spec(parser);
+
+	return init_var_decl(var_nodes, type);
+}
+
+ast_node_T* P_type_spec(parser_T* parser)
+{
+	token_T* t = parser->current_token;
+
+	switch (t->type) 
+	{
+		case T_INTEGER:
+			P_eat(parser, T_INTEGER);
+			return init_type(t);
+
+		case T_REAL:
+			P_eat(parser, T_REAL);
+			return init_type(t);
+
+		default:
+			printf("[P_type_spec]: Invalid token type, for type specification! Type: %d\n", t->type);
+			exit(1);
+	}
 }
 
 ast_node_T* P_compound_statement(parser_T* parser)

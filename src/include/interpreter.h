@@ -2,7 +2,6 @@
 #define INTERPRETER_H
 
 #include "parser.h"
-#include "list_map.h"
 
 typedef struct INTERPRETER_STRUCT
 {

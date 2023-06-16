@@ -1,6 +1,59 @@
 #include "include/ast_node.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+ast_node_T* init_program(char* name, ast_node_T* block)
+{
+	ast_node_T* ast = malloc(sizeof(ast_node_T));
+	ast->type = PROGRAM;
+
+	program_node_T* program = malloc(sizeof(program_node_T));
+	program->ast = *ast;
+	program->name = name;
+	program->block = (block_node_T*) block;
+
+	return (ast_node_T*) program;
+}
+
+ast_node_T* init_block(vardecl_node_T** decls, size_t count, ast_node_T* comp)
+{
+	ast_node_T* ast = malloc(sizeof(ast_node_T));
+	ast->type = BLOCK;
+
+	block_node_T* block = malloc(sizeof(block_node_T));
+	block->ast = *ast;
+	block->decls = decls;
+	block->decl_count = count;
+	block->comp = (compound_node_T*) comp;
+
+	return (ast_node_T*) block;
+}
+
+vardecl_node_T* init_var_decl(var_node_T** vars, ast_node_T* type)
+{
+	ast_node_T* ast = malloc(sizeof(ast_node_T));
+	ast->type = VARDECL;
+
+	vardecl_node_T* decl = malloc(sizeof(vardecl_node_T));
+	decl->ast = *ast;
+	decl->var = vars;
+	decl->type = (type_node_T*) type;
+
+	return decl;
+}
+
+ast_node_T* init_type(token_T* t)
+{
+	ast_node_T* ast = malloc(sizeof(ast_node_T));
+	ast->type = TYPE_SPEC;
+
+	type_node_T* type = malloc(sizeof(type_node_T));
+	type->ast = *ast;
+	type->token = t;
+	type->val = t->value;
+
+	return (ast_node_T*) type;
+}
 
 ast_node_T* init_comp()
 {
@@ -64,7 +117,19 @@ ast_node_T* init_num(token_T* t)
 	num_node_T* num = malloc(sizeof(num_node_T));
 	num->ast = *ast;
 	num->t = t;
-	num->val = atoi(t->value);
+	switch (t->type) {
+		case T_INT_CONST:
+			num->val = (num_T) {.type = INTEGER, .value = (num_U) {.i = atoi(t->value)}};
+			break;
+	
+		case T_REAL_CONST:
+			num->val = (num_T) {.type = FLOAT, .value = (num_U) {.f = atof(t->value)}};
+			break;
+
+		default:
+			printf("[init_num]: Token type %d is not a valid num type\n", t->type);
+			exit(1);
+	}
 
 	return (ast_node_T*) num;
 }

@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "types.h"
 
 typedef enum OPTION_ENUM
 {
@@ -12,7 +13,7 @@ typedef enum OPTION_ENUM
 
 typedef union OPTION_UNION
 {
-	int val;
+	num_T val;
 	char* err;
 } option_U;
 
@@ -25,14 +26,14 @@ typedef struct OPTION_STRUCT
 struct key_value
 {
 	char* key;
-	int val;
+	num_T val;
 };
 
 struct list_map;
 
 struct list_map* init_list_map(size_t capacity);
 
-bool list_map_insert(struct list_map* map, char* key, int val);
+bool list_map_insert(struct list_map* map, char* key, num_T val);
 
 option_T list_map_get(struct list_map* map, char* key);
 

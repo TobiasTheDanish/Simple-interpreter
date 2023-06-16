@@ -21,13 +21,13 @@ typedef struct TOKEN_STRUCT
 		T_STRING_CONST,
 		T_INT_CONST,
 		T_REAL_CONST,
-		T_INT_DIV,
-		T_REAL_DIV,
 		T_LPAREN,
 		T_RPAREN,
 		T_PLUS,
 		T_MINUS,
 		T_MULTIPLY, 
+		T_INT_DIV,
+		T_REAL_DIV,
 		T_EOF
 	} type;
 

@@ -40,6 +40,14 @@ ast_node_T* P_parse(parser_T* parser);
 
 ast_node_T* P_program(parser_T* parser);
 
+ast_node_T* P_block(parser_T* parser);
+
+ast_node_T* P_declarations(parser_T* parser);
+
+vardecl_node_T* P_var_declartion(parser_T* parser);
+
+ast_node_T* P_type_spec(parser_T* parser);
+
 ast_node_T* P_compound_statement(parser_T* parser);
 
 compound_node_T* P_statement_list(parser_T* parser);
@@ -51,4 +59,6 @@ ast_node_T* P_assign_statement(parser_T* parser);
 var_node_T* P_variable(parser_T* parser);
 
 ast_node_T* P_empty(parser_T* parser);
+
+
 #endif // !PARSER_H
