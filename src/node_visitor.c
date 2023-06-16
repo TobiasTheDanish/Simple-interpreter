@@ -60,15 +60,16 @@ num_T visit_var(interpreter_T* i, ast_node_T* node)
 	var_node_T* var = (var_node_T*) node;
 
 	option_T opt = list_map_get(i->global_scope, var->name);
-
+	num_T val;
 	switch (opt.type) 
 	{
 		case Value:
-			if (opt.val.val.type == INTEGER) 
-				printf("[visit_var] var name: %s, var val:%d\n", var->name, opt.val.val.value.i);
+			val = *(num_T*) opt.val.val;
+			if (val.type == INTEGER) 
+				printf("[visit_var] var name: %s, var val:%d\n", var->name, val.value.i);
 			else 
-				printf("[visit_var] var name: %s, var val:%f\n", var->name, opt.val.val.value.f);
-			return opt.val.val;
+				printf("[visit_var] var name: %s, var val:%f\n", var->name, val.value.f);
+			return val;
 
 		case Err:
 			perror(opt.val.err);

@@ -24,6 +24,25 @@ num_T num_t_subtract(num_T a, num_T b);
 num_T num_t_multiply(num_T a, num_T b);
 num_T num_t_int_div(num_T a, num_T b);
 num_T num_t_float_div(num_T a, num_T b);
-
 char* num_t_to_string(num_T* n);
+
+typedef enum OPTION_ENUM
+{
+	Value,
+	Err,
+} option_E;
+
+typedef union OPTION_UNION
+{
+	void* val;
+	char* err;
+} option_U;
+
+typedef struct OPTION_STRUCT
+{
+	option_E type;
+	option_U val;
+} option_T;
+
+
 #endif // !TYPES_H

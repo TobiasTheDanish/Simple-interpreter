@@ -56,7 +56,7 @@ option_T list_map_get(struct list_map* map, char* key)
 		if (strcasecmp(map->kv_pairs[i]->key, key) == 0) {
 			//printf("matched key: '%s' with pair-key: '%s'\n", key, map->kv_pairs[i]->key);
 			opt.type = Value;
-			opt.val.val = map->kv_pairs[i]->val;
+			opt.val.val = &map->kv_pairs[i]->val;
 			return opt;
 		}
 	}

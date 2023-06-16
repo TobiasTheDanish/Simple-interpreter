@@ -5,24 +5,6 @@
 #include <stddef.h>
 #include "types.h"
 
-typedef enum OPTION_ENUM
-{
-	Value,
-	Err,
-} option_E;
-
-typedef union OPTION_UNION
-{
-	num_T val;
-	char* err;
-} option_U;
-
-typedef struct OPTION_STRUCT
-{
-	option_E type;
-	option_U val;
-} option_T;
-
 struct key_value
 {
 	char* key;
