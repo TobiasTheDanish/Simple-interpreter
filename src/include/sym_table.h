@@ -15,7 +15,9 @@ sym_table_T* init_sym_table();
 
 void sym_table_add(sym_table_T* table, symbol_T* symbol);
 
-option_T sym_table_get(sym_table_T* table, char* name);
+option_T* sym_table_get(sym_table_T* table, char* name);
+
+void sym_table_print(sym_table_T* table);
 
 void sym_table_free(sym_table_T* table);
 

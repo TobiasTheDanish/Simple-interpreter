@@ -17,7 +17,7 @@ struct list_map* init_list_map(size_t capacity);
 
 bool list_map_insert(struct list_map* map, char* key, num_T val);
 
-option_T list_map_get(struct list_map* map, char* key);
+option_T* list_map_get(struct list_map* map, char* key);
 
 void list_map_print(struct list_map* map);
 

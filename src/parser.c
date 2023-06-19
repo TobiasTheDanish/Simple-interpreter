@@ -431,7 +431,7 @@ vardecl_node_T* P_var_declartion(parser_T* parser)
 	P_eat(parser, T_COLON);
 	ast_node_T* type = P_type_spec(parser);
 
-	return init_var_decl(var_nodes, type);
+	return init_var_decl(var_nodes, count, type);
 }
 
 ast_node_T* P_type_spec(parser_T* parser)

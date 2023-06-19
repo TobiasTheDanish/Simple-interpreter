@@ -1,6 +1,7 @@
 #include "include/list_map.h"
 #include "include/node_visitor.h"
 #include "include/strings.h"
+#include "include/types.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,22 +48,23 @@ bool list_map_insert(struct list_map* map, char* key, num_T val)
 	return true;
 }
 
-option_T list_map_get(struct list_map* map, char* key)
+option_T* list_map_get(struct list_map* map, char* key)
 {
-	option_T opt;
+	option_T* opt = malloc(sizeof(option_T));
 
 	for (size_t i = 0; i < map->count; i++)
 	{
 		if (strcasecmp(map->kv_pairs[i]->key, key) == 0) {
 			//printf("matched key: '%s' with pair-key: '%s'\n", key, map->kv_pairs[i]->key);
-			opt.type = Value;
-			opt.val.val = &map->kv_pairs[i]->val;
+			opt->type = Value;
+			opt->val.val = &map->kv_pairs[i]->val;
 			return opt;
 		}
 	}
 
-	opt.type = Err;
-	sprintf(opt.val.err, "Attempt at accessing key not in map. Key: %s\n", key);
+	opt->type = Err;
+	opt->val.err = malloc(2*sizeof(char));
+	sprintf(opt->val.err, "Use of uninitialize variable '%s'", key);
 
 	return opt;
 }

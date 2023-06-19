@@ -15,39 +15,42 @@ sym_table_visitor_T* init_sym_table_visitor()
 	return visitor;
 }
 
-void visit_program(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_program(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	program_node_T* prog = (program_node_T*) node;
 
-	visit(visitor, (ast_node_T*) prog->block);
+	S_visit(visitor, (ast_node_T*) prog->block);
 }
 
-void visit_block(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_block(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	block_node_T* block = (block_node_T*) node;
 
 	for (size_t i = 0; i < block->decl_count; i++) 
 	{
-		visit(visitor, (ast_node_T*) block->decls[i]);
+		S_visit(visitor, (ast_node_T*) block->decls[i]);
 	}
 
-	visit(visitor, (ast_node_T*) block->comp);
+	S_visit(visitor, (ast_node_T*) block->comp);
 }
 
-void visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	vardecl_node_T* decl = (vardecl_node_T*) node;
 
-	option_T option = sym_table_get(visitor->symbols, decl->type->val);
+	option_T* option = sym_table_get(visitor->symbols, decl->type->val);
 
-	switch (option.type) 
+	switch (option->type) 
 	{
 		case Value:
 			{
-				symbol_T* type_sym = option.val.val;
+				symbol_T* type_sym = option->val.val;
+
+				printf("[S_visit_vardecl] Adding %zu var declarations with type: %s\n", decl->count, type_sym->name);
 
 				for (size_t i = 0; i < decl->count; i++)
 				{
+					printf("[S_visit_vardecl] i:%zu\n", i);
 					char* name = decl->var[i]->name;
 					sym_table_add(visitor->symbols, init_var_symbol(name, type_sym));
 				}
@@ -55,75 +58,131 @@ void visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 			break;
 
 		case Err:
-			printf("%s\n", option.val.err);
+			printf("%s\n", option->val.err);
 			break;
 	}
 }
 
-void visit_compound(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_assign(sym_table_visitor_T* visitor, ast_node_T* node)
+{
+	assign_node_T* assign = (assign_node_T*) node;
+
+	char* sym_name = assign->left_child->name;
+
+	option_T* opt = sym_table_get(visitor->symbols, sym_name);
+
+	switch (opt->type) 
+	{
+		case Value:
+			S_visit(visitor, assign->right_child);
+			break;
+
+		case Err:
+			printf("[ERROR]: Assigning value to variable '%s': %s\n", sym_name, opt->val.err);
+			exit(1);
+	}
+}
+
+void S_visit_var(sym_table_visitor_T* visitor, ast_node_T* node)
+{
+	var_node_T* var = (var_node_T*) node;
+
+	char* sym_name = var->name;
+
+	option_T* opt = sym_table_get(visitor->symbols, sym_name);
+
+	switch (opt->type) 
+	{
+		case Value:
+			break;
+
+		case Err:
+			printf("[ERROR]: %s have not been declared.\n", opt->val.err);
+			exit(1);
+	}
+}
+
+void S_visit_compound(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	compound_node_T* comp = (compound_node_T*) node;
 
 	for (size_t i = 0; i < comp->child_count; i++)
 	{
-		visit(visitor, comp->children[i]);
+		S_visit(visitor, comp->children[i]);
 	}
 }
 
-void visit_bin_op(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_bin_op(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	bin_op_node_T* bin = (bin_op_node_T*) node;
 
-	visit(visitor, bin->left_child);
-	visit(visitor, bin->right_child);
+	S_visit(visitor, bin->left_child);
+	S_visit(visitor, bin->right_child);
 }
 
-void visit_unary_op(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_unary_op(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	unary_op_node_T* unary = (unary_op_node_T*) node;
 
-	visit(visitor, unary->expr);
+	S_visit(visitor, unary->expr);
 }
 
-void visit_num(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_type_spec(sym_table_visitor_T* visitor, ast_node_T* node)
 {}
 
-void visit_noop(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_num(sym_table_visitor_T* visitor, ast_node_T* node)
 {}
 
-void visit(sym_table_visitor_T* visitor, ast_node_T* node)
+void S_visit_noop(sym_table_visitor_T* visitor, ast_node_T* node)
+{}
+
+void S_visit(sym_table_visitor_T* visitor, ast_node_T* node)
 {
+	//printf("[S_visit]: Node type: %d\n", node->type);
 	switch (node->type) 
 	{
 		case PROGRAM:
-			visit_program(visitor, node);
+			S_visit_program(visitor, node);
 			break;
 
 		case BLOCK:
-			visit_block(visitor, node);
+			S_visit_block(visitor, node);
 			break;
 
 		case VARDECL:
-			visit_vardecl(visitor, node);
+			S_visit_vardecl(visitor, node);
+			break;
 
 		case COMPOUND:
-			visit_compound(visitor, node);
+			S_visit_compound(visitor, node);
+			break;
+
+		case ASSIGN:
+			S_visit_assign(visitor, node);
+			break;
+
+		case VAR:
+			S_visit_var(visitor, node);
+			break;
+
+		case TYPE_SPEC:
+			S_visit_type_spec(visitor, node);
 			break;
 
 		case BIN_OP:
-			visit_bin_op(visitor, node);
+			S_visit_bin_op(visitor, node);
 			break;
 
 		case UNARY_OP:
-			visit_unary_op(visitor, node);
+			S_visit_unary_op(visitor, node);
 			break;
 
 		case NUM:
-			visit_num(visitor, node);
+			S_visit_num(visitor, node);
 			break;
 
 		case NOOP:
-			visit_noop(visitor, node);
+			S_visit_noop(visitor, node);
 			break;
 	}
 }

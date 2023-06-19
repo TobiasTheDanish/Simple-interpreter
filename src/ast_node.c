@@ -29,7 +29,7 @@ ast_node_T* init_block(vardecl_node_T** decls, size_t count, ast_node_T* comp)
 	return (ast_node_T*) block;
 }
 
-vardecl_node_T* init_var_decl(var_node_T** vars, ast_node_T* type)
+vardecl_node_T* init_var_decl(var_node_T** vars, size_t count, ast_node_T* type)
 {
 	ast_node_T* ast = malloc(sizeof(ast_node_T));
 	ast->type = VARDECL;
@@ -37,6 +37,7 @@ vardecl_node_T* init_var_decl(var_node_T** vars, ast_node_T* type)
 	vardecl_node_T* decl = malloc(sizeof(vardecl_node_T));
 	decl->ast = *ast;
 	decl->var = vars;
+	decl->count = count;
 	decl->type = (type_node_T*) type;
 
 	return decl;

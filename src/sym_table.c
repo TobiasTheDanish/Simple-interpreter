@@ -8,8 +8,8 @@
 
 void init_builtin_symbols(sym_table_T* table)
 {
-	sym_table_add(table, init_symbol(BUILTIN_TYPE, "INTEGER", SYM_NONE));
-	sym_table_add(table, init_symbol(BUILTIN_TYPE, "REAL", SYM_NONE));
+	sym_table_add(table, init_symbol(SYM_BUILTIN_TYPE, "INTEGER"));
+	sym_table_add(table, init_symbol(SYM_BUILTIN_TYPE, "REAL"));
 }
 
 sym_table_T* init_sym_table()
@@ -30,24 +30,36 @@ void sym_table_add(sym_table_T* table, symbol_T* symbol)
 	table->size += 1;
 
 	table->symbols = realloc(table->symbols, (table->size + 1) * sizeof(symbol_T*));
+
+	printf("Added symbol '%s'\n", symbol->name);
 }
 
-option_T sym_table_get(sym_table_T* table, char* name)
+option_T* sym_table_get(sym_table_T* table, char* name)
 {
-	option_T option;
+	option_T* option = calloc(1, sizeof(option_T));
 
 	for (size_t i = 0; i < table->size; i++)
 	{
 		if (strcmp(table->symbols[i]->name, name) == 0) 
 		{
-			option.type = Value;
-			option.val.val = table->symbols[i];
+			option->type = Value;
+			option->val.val = table->symbols[i];
+			return option;
 		}
 	}
 
-	option.type = Err;
-	sprintf(option.val.err, "Unable to lookup symbol: '%s'.\n", name);
+	option->type = Err;
+	option->val.err = malloc(sizeof(char));
+	sprintf(option->val.err, "Unknown symbol: '%s'.\n", name);
 	return option;
+}
+
+void sym_table_print(sym_table_T* table)
+{
+	for (size_t i = 0; i < table->size; i++)
+	{
+		printf("Sym #%lu: %s\n", (i+1), symbol_to_string(table->symbols[i]));
+	}
 }
 
 void sym_table_free(sym_table_T* table)

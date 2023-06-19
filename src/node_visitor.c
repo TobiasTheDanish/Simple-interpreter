@@ -12,7 +12,7 @@
 void visit_program(interpreter_T* i, ast_node_T* node)
 {
 	program_node_T* prog = (program_node_T*) node;
-	visit(i, (ast_node_T*) prog->block);
+	N_visit(i, (ast_node_T*) prog->block);
 }
 
 void visit_block(interpreter_T* i, ast_node_T* node)
@@ -20,10 +20,10 @@ void visit_block(interpreter_T* i, ast_node_T* node)
 	block_node_T* block = (block_node_T*) node;
 	for (size_t index = 0; index < block->decl_count; index++)
 	{
-		visit(i, (ast_node_T*) block->decls[index]);
+		N_visit(i, (ast_node_T*) block->decls[index]);
 	}
 
-	visit(i, (ast_node_T*) block->comp);
+	N_visit(i, (ast_node_T*) block->comp);
 }
 
 void visit_vardecl(interpreter_T* i, ast_node_T* node)
@@ -40,7 +40,7 @@ void visit_compound(interpreter_T* i, ast_node_T* node)
 
 	for (size_t index = 0; index < comp->child_count; index++)
 	{
-		visit(i, comp->children[index]);
+		N_visit(i, comp->children[index]);
 	}
 }
 
@@ -49,7 +49,7 @@ void visit_assign(interpreter_T* i, ast_node_T* node)
 	assign_node_T* assign = (assign_node_T*) node;
 
 	printf("\n[visit_assign] Var name: %s, val type: %d\n", assign->left_child->name, assign->right_child->type);
-	if (!list_map_insert(i->global_scope, assign->left_child->name, visit(i, assign->right_child))) 
+	if (!list_map_insert(i->global_scope, assign->left_child->name, N_visit(i, assign->right_child))) 
 	{
 		printf("\n[visit_assign] Failed to insert var to global_scope");
 	}
@@ -59,12 +59,12 @@ num_T visit_var(interpreter_T* i, ast_node_T* node)
 {
 	var_node_T* var = (var_node_T*) node;
 
-	option_T opt = list_map_get(i->global_scope, var->name);
+	option_T* opt = list_map_get(i->global_scope, var->name);
 	num_T val;
-	switch (opt.type) 
+	switch (opt->type) 
 	{
 		case Value:
-			val = *(num_T*) opt.val.val;
+			val = *(num_T*) opt->val.val;
 			if (val.type == INTEGER) 
 				printf("[visit_var] var name: %s, var val:%d\n", var->name, val.value.i);
 			else 
@@ -72,7 +72,9 @@ num_T visit_var(interpreter_T* i, ast_node_T* node)
 			return val;
 
 		case Err:
-			perror(opt.val.err);
+			printf("[ERROR]: %s\n", opt->val.err);
+			list_map_free(i->global_scope);
+			free(i);
 			exit(1);
 	}
 }
@@ -90,7 +92,7 @@ num_T visit_unary_op(interpreter_T* i, ast_node_T* node)
 
 	switch (op->t->type) {
 		case T_PLUS:
-			num = visit(i, op->expr);
+			num = N_visit(i, op->expr);
 			if (num.type == INTEGER)
 			{
 				num.value.i = +num.value.i;
@@ -103,7 +105,7 @@ num_T visit_unary_op(interpreter_T* i, ast_node_T* node)
 			}
 
 		case T_MINUS:
-			num = visit(i, op->expr);
+			num = N_visit(i, op->expr);
 			if (num.type == INTEGER)
 			{
 				num.value.i = -num.value.i;
@@ -139,32 +141,32 @@ num_T visit_bin_op(interpreter_T* i, ast_node_T* node)
 	switch (bin->t->type) 
 	{
 		case T_PLUS:
-			left = visit(i, bin->left_child);
-			right = visit(i, bin->right_child);
+			left = N_visit(i, bin->left_child);
+			right = N_visit(i, bin->right_child);
 			printf("%s + %s\n", num_t_to_string(&left), num_t_to_string(&right));
 			return num_t_add(left, right);
 
 		case T_MINUS:
-			left = visit(i, bin->left_child);
-			right = visit(i, bin->right_child);
+			left = N_visit(i, bin->left_child);
+			right = N_visit(i, bin->right_child);
 			printf("%s - %s\n", num_t_to_string(&left), num_t_to_string(&right));
 			return num_t_subtract(left, right);
 
 		case T_MULTIPLY:
-			left = visit(i, bin->left_child);
-			right = visit(i, bin->right_child);
+			left = N_visit(i, bin->left_child);
+			right = N_visit(i, bin->right_child);
 			printf("%s * %s\n", num_t_to_string(&left), num_t_to_string(&right));
 			return num_t_multiply(left, right);
 
 		case T_INT_DIV:
-			left = visit(i, bin->left_child);
-			right = visit(i, bin->right_child);
+			left = N_visit(i, bin->left_child);
+			right = N_visit(i, bin->right_child);
 			printf("%s DIV %s\n", num_t_to_string(&left), num_t_to_string(&right));
 			return num_t_int_div(left, right);
 
 		case T_REAL_DIV:
-			left = visit(i, bin->left_child);
-			right = visit(i, bin->right_child);
+			left = N_visit(i, bin->left_child);
+			right = N_visit(i, bin->right_child);
 			printf("%s / %s\n", num_t_to_string(&left), num_t_to_string(&right));
 			return num_t_float_div(left, right);
 
@@ -174,7 +176,7 @@ num_T visit_bin_op(interpreter_T* i, ast_node_T* node)
 	}
 }
 
-num_T visit(interpreter_T* i, ast_node_T* node)
+num_T N_visit(interpreter_T* i, ast_node_T* node)
 {
 	//printf("Visit called on node with type %d\n", node->type);
 	switch (node->type) 

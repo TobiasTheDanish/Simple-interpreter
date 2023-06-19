@@ -3,8 +3,8 @@
 
 typedef enum SYMBOL_ENUM
 {
-	VAR,
-	BUILTIN_TYPE,
+	SYM_VAR,
+	SYM_BUILTIN_TYPE,
 } symbol_E;
 
 typedef enum BUILTIN_TYPES_ENUM
@@ -30,5 +30,7 @@ typedef struct VAR_SYMBOL_STRUCT
 symbol_T* init_symbol(symbol_E symbol, char* name);
 
 symbol_T* init_var_symbol( char* name, symbol_T* type);
+
+char* symbol_to_string(symbol_T* symbol);
 
 #endif // !SYMBOL_H

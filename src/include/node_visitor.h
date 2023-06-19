@@ -4,6 +4,6 @@
 #include "interpreter.h"
 #include "types.h"
 
-num_T visit(interpreter_T* i, ast_node_T* node);
+num_T N_visit(interpreter_T* i, ast_node_T* node);
 
 #endif // !NODE_VISITOR_H

@@ -112,7 +112,7 @@ ast_node_T* init_block(vardecl_node_T** decls, size_t count, ast_node_T* comp);
 
 ast_node_T* init_comp();
 
-vardecl_node_T* init_var_decl(var_node_T** var, ast_node_T* type);
+vardecl_node_T* init_var_decl(var_node_T** var, size_t count, ast_node_T* type);
 
 ast_node_T* init_type(token_T* t);
 
