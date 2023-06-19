@@ -7,6 +7,7 @@ typedef struct TOKEN_STRUCT
 	{
 		T_PROGRAM,
 		T_VAR,
+		T_PROCEDURE,
 		T_COLON,
 		T_COMMA,
 		T_BEGIN,

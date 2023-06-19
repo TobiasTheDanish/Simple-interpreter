@@ -30,6 +30,16 @@ void visit_vardecl(interpreter_T* i, ast_node_T* node)
 {
 }
 
+void visit_procdecl(interpreter_T* i, ast_node_T* node)
+{
+	decl_node_T* decl = (decl_node_T*) node;
+	procdecl_node_T* proc = decl->node->proc;
+
+	printf("[visit_procdecl]: Procedure named '%s'\n", proc->name);
+
+	N_visit(i, proc->block);
+}
+
 void visit_type(interpreter_T* i, ast_node_T* node)
 {
 }
@@ -191,6 +201,10 @@ num_T N_visit(interpreter_T* i, ast_node_T* node)
 
 		case VARDECL:
 			visit_vardecl(i, node);
+			break;
+
+		case PROCDECL:
+			visit_procdecl(i, node);
 			break;
 
 		case TYPE_SPEC:

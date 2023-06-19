@@ -15,7 +15,7 @@ ast_node_T* init_program(char* name, ast_node_T* block)
 	return (ast_node_T*) program;
 }
 
-ast_node_T* init_block(vardecl_node_T** decls, size_t count, ast_node_T* comp)
+ast_node_T* init_block(decl_node_T** decls, size_t count, ast_node_T* comp)
 {
 	ast_node_T* ast = malloc(sizeof(ast_node_T));
 	ast->type = BLOCK;
@@ -29,18 +29,50 @@ ast_node_T* init_block(vardecl_node_T** decls, size_t count, ast_node_T* comp)
 	return (ast_node_T*) block;
 }
 
+procdecl_node_T* init_proc_decl(char* name, ast_node_T* block)
+{
+	procdecl_node_T* decl = malloc(sizeof(procdecl_node_T));
+	decl->name = name;
+	decl->block = block;
+
+	return decl;
+}
+
 vardecl_node_T* init_var_decl(var_node_T** vars, size_t count, ast_node_T* type)
 {
-	ast_node_T* ast = malloc(sizeof(ast_node_T));
-	ast->type = VARDECL;
-
 	vardecl_node_T* decl = malloc(sizeof(vardecl_node_T));
-	decl->ast = *ast;
 	decl->var = vars;
 	decl->count = count;
 	decl->type = (type_node_T*) type;
 
 	return decl;
+}
+
+ast_node_T* init_decl(unsigned int type, void* node)
+{
+	ast_node_T* ast = malloc(sizeof(ast_node_T));
+	ast->type = type;
+
+	decl_node_T* decl = malloc(sizeof(decl_node_T));
+	decl->ast = *ast;
+	decl->node = malloc(sizeof(decl_node_U));
+
+	switch (type) 
+	{
+		case VARDECL:
+			decl->node->var = node;
+			break;
+	
+		case PROCDECL:
+			decl->node->proc = node;
+			break;
+
+		default:
+			printf("Unimplemented declaration with type %d\n", type);
+			exit(1);
+	}
+
+	return (ast_node_T*) decl;
 }
 
 ast_node_T* init_type(token_T* t)

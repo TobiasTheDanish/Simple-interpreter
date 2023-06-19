@@ -8,11 +8,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#define NUM_KEYWORDS 7
+#define NUM_KEYWORDS 8
 
 token_T keywords[NUM_KEYWORDS] = {
 	{ T_PROGRAM, "PROGRAM"},
 	{ T_VAR, "VAR"},
+	{ T_PROCEDURE, "PROCEDURE"},
 	{ T_BEGIN, "BEGIN"},
 	{ T_END, "END"},
 	{ T_INT_DIV, "DIV"},
@@ -388,7 +389,7 @@ ast_node_T* P_block(parser_T* parser)
 
 ast_node_T* P_declarations(parser_T* parser)
 {
-	vardecl_node_T** declarations = malloc(sizeof(vardecl_node_T*));
+	decl_node_T** declarations = malloc(sizeof(decl_node_T*));
 	size_t count = 0;
 
 	if (parser->current_token->type == T_VAR) 
@@ -397,18 +398,35 @@ ast_node_T* P_declarations(parser_T* parser)
 
 		while (parser->current_token->type == T_ID) 
 		{
-			declarations[count] = P_var_declartion(parser);
+			declarations[count] = (decl_node_T*) P_var_declaration(parser);
 			count += 1;
-			declarations = realloc(declarations, (count + 1) * sizeof(vardecl_node_T*));
+			declarations = realloc(declarations, (count + 1) * sizeof(decl_node_T*));
 
 			P_eat(parser, T_SEMI);
 		}
 	}
 
+	while (parser->current_token->type == T_PROCEDURE)
+	{
+		P_eat(parser, T_PROCEDURE);
+
+		char* proc_name = parser->current_token->value;
+
+		P_eat(parser, T_ID);
+		P_eat(parser, T_SEMI);
+
+		ast_node_T* proc_block = P_block(parser);
+		P_eat(parser, T_SEMI);
+
+		declarations[count] = (decl_node_T*) init_decl(PROCDECL, init_proc_decl(proc_name, proc_block));
+		count += 1;
+		declarations = realloc(declarations, (count + 1) * sizeof(decl_node_T*));
+	}
+
 	return init_block(declarations, count, P_compound_statement(parser));
 }
 
-vardecl_node_T* P_var_declartion(parser_T* parser)
+ast_node_T* P_var_declaration(parser_T* parser)
 {
 	var_node_T** var_nodes = malloc(sizeof(var_node_T*));
 	size_t count = 0;
@@ -431,7 +449,7 @@ vardecl_node_T* P_var_declartion(parser_T* parser)
 	P_eat(parser, T_COLON);
 	ast_node_T* type = P_type_spec(parser);
 
-	return init_var_decl(var_nodes, count, type);
+	return init_decl(VARDECL, init_var_decl(var_nodes, count, type));
 }
 
 ast_node_T* P_type_spec(parser_T* parser)

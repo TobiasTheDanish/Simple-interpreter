@@ -36,9 +36,10 @@ void S_visit_block(sym_table_visitor_T* visitor, ast_node_T* node)
 
 void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 {
-	vardecl_node_T* decl = (vardecl_node_T*) node;
+	decl_node_T* decl = (decl_node_T*) node;
+	vardecl_node_T* var = decl->node->var;
 
-	option_T* option = sym_table_get(visitor->symbols, decl->type->val);
+	option_T* option = sym_table_get(visitor->symbols, var->type->val);
 
 	switch (option->type) 
 	{
@@ -46,12 +47,12 @@ void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 			{
 				symbol_T* type_sym = option->val.val;
 
-				printf("[S_visit_vardecl] Adding %zu var declarations with type: %s\n", decl->count, type_sym->name);
+				printf("[S_visit_vardecl] Adding %zu var declarations with type: %s\n", var->count, type_sym->name);
 
-				for (size_t i = 0; i < decl->count; i++)
+				for (size_t i = 0; i < var->count; i++)
 				{
-					printf("[S_visit_vardecl] i:%zu\n", i);
-					char* name = decl->var[i]->name;
+					//printf("[S_visit_vardecl] i:%zu\n", i);
+					char* name = var->var[i]->name;
 					sym_table_add(visitor->symbols, init_var_symbol(name, type_sym));
 				}
 			}
@@ -61,6 +62,18 @@ void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 			printf("%s\n", option->val.err);
 			break;
 	}
+}
+
+void S_visit_procdecl(sym_table_visitor_T* visitor, ast_node_T* node)
+{
+	decl_node_T* decl = (decl_node_T*) node;
+	procdecl_node_T* proc = decl->node->proc;
+
+	printf("\n[S_visit_procdecl]: Procedure named '%s' start\n", proc->name);
+
+	S_visit(visitor, proc->block);
+
+	printf("[S_visit_procdecl]: Procedure '%s' end\n\n", proc->name);
 }
 
 void S_visit_assign(sym_table_visitor_T* visitor, ast_node_T* node)
@@ -151,6 +164,10 @@ void S_visit(sym_table_visitor_T* visitor, ast_node_T* node)
 
 		case VARDECL:
 			S_visit_vardecl(visitor, node);
+			break;
+
+		case PROCDECL:
+			S_visit_procdecl(visitor, node);
 			break;
 
 		case COMPOUND:

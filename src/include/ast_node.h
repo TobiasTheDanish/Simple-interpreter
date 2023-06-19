@@ -11,6 +11,7 @@ typedef struct AST_NODE_STRUCT
 		PROGRAM,
 		BLOCK,
 		VARDECL,
+		PROCDECL,
 		TYPE_SPEC,
 		COMPOUND,
 		ASSIGN,
@@ -84,16 +85,33 @@ typedef struct type_node_T
 
 typedef struct VARDECL_NODE_STRUCT
 {
-	ast_node_T ast;
 	var_node_T** var;
 	size_t count;
 	type_node_T* type;
 } vardecl_node_T;
 
+typedef struct PROCDECL_NODE_STRUCT
+{
+	char* name;
+	ast_node_T* block;
+} procdecl_node_T;
+
+typedef union DECLARATION_NODE_UNION
+{
+	vardecl_node_T* var;
+	procdecl_node_T* proc;
+} decl_node_U;
+
+typedef struct DECLARATION_NODE_STRUCT
+{
+	ast_node_T ast;
+	decl_node_U* node;
+} decl_node_T;
+
 typedef struct BLOCK_NODE_STRUCT
 {
 	ast_node_T ast;
-	vardecl_node_T** decls;
+	decl_node_T** decls;
 	size_t decl_count;
 	compound_node_T* comp;
 } block_node_T;
@@ -108,11 +126,15 @@ typedef struct PROGRAM_NODE_STRUCT
 
 ast_node_T* init_program(char* name, ast_node_T* block);
 
-ast_node_T* init_block(vardecl_node_T** decls, size_t count, ast_node_T* comp);
+ast_node_T* init_block(decl_node_T** decls, size_t count, ast_node_T* comp);
 
 ast_node_T* init_comp();
 
+procdecl_node_T* init_proc_decl(char* name, ast_node_T* block);
+
 vardecl_node_T* init_var_decl(var_node_T** var, size_t count, ast_node_T* type);
+
+ast_node_T* init_decl(unsigned int type, void* node);
 
 ast_node_T* init_type(token_T* t);
 
