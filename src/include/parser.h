@@ -44,6 +44,8 @@ ast_node_T* P_block(parser_T* parser);
 
 ast_node_T* P_declarations(parser_T* parser);
 
+void P_formal_params(parser_T* parser, param_node_T*** params, size_t* param_count);
+
 ast_node_T* P_var_declaration(parser_T* parser);
 
 ast_node_T* P_type_spec(parser_T* parser);

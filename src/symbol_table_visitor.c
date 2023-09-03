@@ -9,8 +9,8 @@
 
 sym_table_visitor_T* init_sym_table_visitor()
 {
-	sym_table_visitor_T* visitor = malloc(sizeof(sym_table_visitor_T));
-	visitor->symbols = init_sym_table();
+	sym_table_visitor_T* visitor = calloc(1, sizeof(sym_table_visitor_T));
+	visitor->scope = calloc(1, sizeof(scoped_sym_table_T));
 
 	return visitor;
 }
@@ -19,7 +19,16 @@ void S_visit_program(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	program_node_T* prog = (program_node_T*) node;
 
+	printf("Enter scope: 'global'");
+
+	scoped_sym_table_T* global = init_sym_table("global", 1);
+	init_builtin_symbols(global);
+	visitor->scope = global;
+
 	S_visit(visitor, (ast_node_T*) prog->block);
+
+	sym_table_print(global);
+	printf("Leave scope: 'global'");
 }
 
 void S_visit_block(sym_table_visitor_T* visitor, ast_node_T* node)
@@ -39,7 +48,7 @@ void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 	decl_node_T* decl = (decl_node_T*) node;
 	vardecl_node_T* var = decl->node->var;
 
-	option_T* option = sym_table_get(visitor->symbols, var->type->val);
+	option_T* option = sym_table_get(visitor->scope, var->type->val);
 
 	switch (option->type) 
 	{
@@ -53,14 +62,14 @@ void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 				{
 					//printf("[S_visit_vardecl] i:%zu\n", i);
 					char* name = var->var[i]->name;
-					option_T* var = sym_table_get(visitor->symbols, name);
+					option_T* var = sym_table_get(visitor->scope, name);
 
 					if (var->type == Value) {
 						printf("[ERROR]: Variable redeclaration. '%s' already exists.\n", name);
 						exit(1);
 					}
 					
-					sym_table_add(visitor->symbols, init_var_symbol(name, type_sym));
+					sym_table_add(visitor->scope, init_var_symbol(name, type_sym));
 				}
 			}
 			break;
@@ -76,11 +85,44 @@ void S_visit_procdecl(sym_table_visitor_T* visitor, ast_node_T* node)
 	decl_node_T* decl = (decl_node_T*) node;
 	procdecl_node_T* proc = decl->node->proc;
 
-	printf("\n[S_visit_procdecl]: Procedure named '%s' start\n", proc->name);
+	proc_symbol_T* proc_symbol = (proc_symbol_T*)init_proc_symbol(proc->name);
+	sym_table_add(visitor->scope, (symbol_T*)proc_symbol);
+
+	printf("Enter scope: '%s'\n", proc->name);
+	scoped_sym_table_T* proc_scope = init_sym_table(proc->name, visitor->scope->level + 1);
+	visitor->scope = proc_scope;
+
+	printf("param count: %zu\n", proc->param_count);
+	for (size_t i = 0; i < proc->param_count; i++) 
+	{
+		vardecl_node_T* param = proc->params[i]->vardecl;
+
+		char* type = param->type->val;
+		option_T* type_option = sym_table_get(visitor->scope, type);
+
+		switch (type_option->type) 
+		{
+			case Value:
+				{
+					for (size_t j = 0; j < param->count; j++)
+					{
+						symbol_T* var_sym = init_var_symbol(param->var[j]->name, type_option->val.val);
+						sym_table_add(visitor->scope, var_sym);
+						proc_add_param(proc_symbol, (var_symbol_T*)var_sym);
+					}
+				}
+				break;
+
+			case Err:
+				printf("%s\n", type_option->val.err);
+				break;
+		}
+	}
 
 	S_visit(visitor, proc->block);
 
-	printf("[S_visit_procdecl]: Procedure '%s' end\n\n", proc->name);
+	sym_table_print(proc_scope);
+	printf("Leave scope: '%s'\n", proc->name);
 }
 
 void S_visit_assign(sym_table_visitor_T* visitor, ast_node_T* node)
@@ -89,7 +131,7 @@ void S_visit_assign(sym_table_visitor_T* visitor, ast_node_T* node)
 
 	char* sym_name = assign->left_child->name;
 
-	option_T* opt = sym_table_get(visitor->symbols, sym_name);
+	option_T* opt = sym_table_get(visitor->scope, sym_name);
 
 	switch (opt->type) 
 	{
@@ -109,7 +151,7 @@ void S_visit_var(sym_table_visitor_T* visitor, ast_node_T* node)
 
 	char* sym_name = var->name;
 
-	option_T* opt = sym_table_get(visitor->symbols, sym_name);
+	option_T* opt = sym_table_get(visitor->scope, sym_name);
 
 	switch (opt->type) 
 	{

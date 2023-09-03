@@ -24,8 +24,6 @@ int I_run(interpreter_T* i)
 
 	S_visit(i->sym_visitor, root);
 
-	sym_table_print(i->sym_visitor->symbols);
-
 	N_visit(i, root);
 
 	return 0;

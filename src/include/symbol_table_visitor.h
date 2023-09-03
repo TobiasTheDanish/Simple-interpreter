@@ -5,7 +5,7 @@
 #include "sym_table.h"
 typedef struct SYMBOL_TABLE_VISITOR_STRUCT
 {
-	sym_table_T* symbols;
+	scoped_sym_table_T* scope;
 } sym_table_visitor_T;
 
 sym_table_visitor_T* init_sym_table_visitor();

@@ -244,7 +244,7 @@ void P_eat(parser_T* parser, int token_type)
 {
 	if (parser->current_token->type == token_type) 
 	{
-		//printf("%s\n", token_as_string(parser->current_token));
+		printf("%s\n", token_as_string(parser->current_token));
 		parser->current_token = P_get_next_token(parser);
 	}
 	else 
@@ -399,7 +399,8 @@ ast_node_T* P_declarations(parser_T* parser)
 
 		while (parser->current_token->type == T_ID) 
 		{
-			declarations[count] = (decl_node_T*) P_var_declaration(parser);
+			decl_node_T* vardecl = (decl_node_T*) P_var_declaration(parser);
+			declarations[count] = vardecl;
 			count += 1;
 			declarations = realloc(declarations, (count + 1) * sizeof(decl_node_T*));
 
@@ -409,22 +410,63 @@ ast_node_T* P_declarations(parser_T* parser)
 
 	while (parser->current_token->type == T_PROCEDURE)
 	{
+		param_node_T** params = malloc(sizeof(param_node_T*));
+		size_t param_count = 0;
+
 		P_eat(parser, T_PROCEDURE);
 
 		char* proc_name = parser->current_token->value;
 
 		P_eat(parser, T_ID);
+
+		P_formal_params(parser, &params, &param_count);
+
 		P_eat(parser, T_SEMI);
 
 		ast_node_T* proc_block = P_block(parser);
 		P_eat(parser, T_SEMI);
 
-		declarations[count] = (decl_node_T*) init_decl(PROCDECL, init_proc_decl(proc_name, proc_block));
+		declarations[count] = 
+			(decl_node_T*) init_decl(PROCDECL, init_proc_decl(proc_name, params, param_count, proc_block));
 		count += 1;
 		declarations = realloc(declarations, (count + 1) * sizeof(decl_node_T*));
 	}
 
 	return init_block(declarations, count, P_compound_statement(parser));
+}
+
+void P_formal_params(parser_T* parser, param_node_T*** params, size_t* param_count) 
+{
+	param_node_T** p = malloc(sizeof(param_node_T*));
+	size_t count = 0;
+
+	if (parser->current_token->type != T_LPAREN) 
+	{
+		params = (void*) 0;
+	}
+	else
+	{
+		P_eat(parser, T_LPAREN);
+
+		while (parser->current_token->type == T_ID) 
+		{
+			decl_node_T* decl = (decl_node_T*)P_var_declaration(parser);
+
+			p[count] = init_param(decl->node->var);
+			count += 1;
+			p = realloc(p, (count + 1) * sizeof(param_node_T*));
+
+			if (parser->current_token->type == T_SEMI) 
+			{
+				P_eat(parser, T_SEMI);
+			}
+		}
+
+		P_eat(parser, T_RPAREN);
+	}
+
+	*params = p;
+	*param_count = count;
 }
 
 ast_node_T* P_var_declaration(parser_T* parser)
@@ -455,20 +497,20 @@ ast_node_T* P_var_declaration(parser_T* parser)
 
 ast_node_T* P_type_spec(parser_T* parser)
 {
-	token_T* t = parser->current_token;
+	token_T t = *parser->current_token;
 
-	switch (t->type) 
+	switch (t.type) 
 	{
 		case T_INTEGER:
 			P_eat(parser, T_INTEGER);
-			return init_type(t);
+			return init_type(&t);
 
 		case T_REAL:
 			P_eat(parser, T_REAL);
-			return init_type(t);
+			return init_type(&t);
 
 		default:
-			printf("[P_type_spec]: Invalid token type, for type specification! Type: %d\n", t->type);
+			printf("[P_type_spec]: Invalid token type, for type specification! Type: %d\n", t.type);
 			exit(1);
 	}
 }

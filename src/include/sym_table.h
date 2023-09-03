@@ -4,21 +4,26 @@
 #include "symbol.h"
 #include "types.h"
 #include <stddef.h>
+#include <stdint.h>
 
-typedef struct SYMBOL_TABLE_STRUCT
+typedef struct SCOPED_SYMBOL_TABLE_STRUCT
 {
+	char* name;
+	int8_t level;
 	symbol_T** symbols;
 	size_t size;
-} sym_table_T;
+} scoped_sym_table_T;
 
-sym_table_T* init_sym_table();
+void init_builtin_symbols(scoped_sym_table_T* table);
 
-void sym_table_add(sym_table_T* table, symbol_T* symbol);
+scoped_sym_table_T* init_sym_table(char* name, int8_t level);
 
-option_T* sym_table_get(sym_table_T* table, char* name);
+void sym_table_add(scoped_sym_table_T* table, symbol_T* symbol);
 
-void sym_table_print(sym_table_T* table);
+option_T* sym_table_get(scoped_sym_table_T* table, char* name);
 
-void sym_table_free(sym_table_T* table);
+void sym_table_print(scoped_sym_table_T* table);
+
+void sym_table_free(scoped_sym_table_T* table);
 
 #endif // !SYM_TABLE_H

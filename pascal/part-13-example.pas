@@ -1,6 +1,6 @@
 program SymTab6;
    var x, y : integer;
-   y : real;
+   Y : real;
 begin
    x := x + y;
 end.

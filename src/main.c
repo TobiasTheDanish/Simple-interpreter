@@ -6,7 +6,7 @@
 
 int main()
 {
-	char* pascal = read_file("pascal/part-13-example.pas");
+	char* pascal = read_file("pascal/part-14-example.pas");
 	//printf("pascal src:\n%s\n", pascal);
 
 	interpreter_T* i = I_init(pascal);

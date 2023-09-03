@@ -29,10 +29,12 @@ ast_node_T* init_block(decl_node_T** decls, size_t count, ast_node_T* comp)
 	return (ast_node_T*) block;
 }
 
-procdecl_node_T* init_proc_decl(char* name, ast_node_T* block)
+procdecl_node_T* init_proc_decl(char* name, param_node_T** params, size_t param_count, ast_node_T* block)
 {
 	procdecl_node_T* decl = malloc(sizeof(procdecl_node_T));
 	decl->name = name;
+	decl->params = params;
+	decl->param_count = param_count;
 	decl->block = block;
 
 	return decl;
@@ -46,6 +48,18 @@ vardecl_node_T* init_var_decl(var_node_T** vars, size_t count, ast_node_T* type)
 	decl->type = (type_node_T*) type;
 
 	return decl;
+}
+
+param_node_T* init_param(vardecl_node_T* vardecl) 
+{
+	ast_node_T* ast = malloc(sizeof(ast_node_T));
+	ast->type = PARAM;
+
+	param_node_T* param = malloc(sizeof(param_node_T));
+	param->ast = *ast;
+	param->vardecl = vardecl;
+
+	return param;
 }
 
 ast_node_T* init_decl(unsigned int type, void* node)

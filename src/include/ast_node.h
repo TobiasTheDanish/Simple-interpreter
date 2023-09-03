@@ -12,6 +12,7 @@ typedef struct AST_NODE_STRUCT
 		BLOCK,
 		VARDECL,
 		PROCDECL,
+		PARAM,
 		TYPE_SPEC,
 		COMPOUND,
 		ASSIGN,
@@ -90,9 +91,17 @@ typedef struct VARDECL_NODE_STRUCT
 	type_node_T* type;
 } vardecl_node_T;
 
+typedef struct PARAM_NODE_STRUCT
+{
+	ast_node_T ast;
+	vardecl_node_T* vardecl;
+} param_node_T;
+
 typedef struct PROCDECL_NODE_STRUCT
 {
 	char* name;
+	param_node_T** params;
+	size_t param_count;
 	ast_node_T* block;
 } procdecl_node_T;
 
@@ -130,9 +139,11 @@ ast_node_T* init_block(decl_node_T** decls, size_t count, ast_node_T* comp);
 
 ast_node_T* init_comp();
 
-procdecl_node_T* init_proc_decl(char* name, ast_node_T* block);
+procdecl_node_T* init_proc_decl(char* name, param_node_T** params, size_t param_count, ast_node_T* block);
 
 vardecl_node_T* init_var_decl(var_node_T** var, size_t count, ast_node_T* type);
+
+param_node_T* init_param(vardecl_node_T* vardecl);
 
 ast_node_T* init_decl(unsigned int type, void* node);
 

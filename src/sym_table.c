@@ -6,16 +6,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-void init_builtin_symbols(sym_table_T* table)
+void init_builtin_symbols(scoped_sym_table_T* table)
 {
 	sym_table_add(table, init_symbol(SYM_BUILTIN_TYPE, "INTEGER"));
 	sym_table_add(table, init_symbol(SYM_BUILTIN_TYPE, "REAL"));
 }
 
-sym_table_T* init_sym_table()
+scoped_sym_table_T* init_sym_table(char* name, int8_t level)
 {
-	sym_table_T* table = malloc(sizeof(sym_table_T));
+	scoped_sym_table_T* table = malloc(sizeof(scoped_sym_table_T));
 
+	table->name = name;
+	table->level = level;
 	table->size = 0;
 	table->symbols = malloc(sizeof(symbol_T*));
 
@@ -24,7 +26,7 @@ sym_table_T* init_sym_table()
 	return table;
 }
 
-void sym_table_add(sym_table_T* table, symbol_T* symbol)
+void sym_table_add(scoped_sym_table_T* table, symbol_T* symbol)
 {
 	table->symbols[table->size] = symbol;
 	table->size += 1;
@@ -34,7 +36,7 @@ void sym_table_add(sym_table_T* table, symbol_T* symbol)
 	printf("Added symbol '%s'\n", symbol->name);
 }
 
-option_T* sym_table_get(sym_table_T* table, char* name)
+option_T* sym_table_get(scoped_sym_table_T* table, char* name)
 {
 	printf("Lookup: %s\n", name);  
 	option_T* option = calloc(1, sizeof(option_T));
@@ -54,15 +56,16 @@ option_T* sym_table_get(sym_table_T* table, char* name)
 	return option;
 }
 
-void sym_table_print(sym_table_T* table)
+void sym_table_print(scoped_sym_table_T* table)
 {
+	printf("\nScope '%s', level %d\n", table->name, table->level);
 	for (size_t i = 0; i < table->size; i++)
 	{
-		printf("Sym #%lu: %s\n", (i+1), symbol_to_string(table->symbols[i]));
+		printf("\tSymbol #%lu: %s\n", (i+1), symbol_to_string(table->symbols[i]));
 	}
 }
 
-void sym_table_free(sym_table_T* table)
+void sym_table_free(scoped_sym_table_T* table)
 {
 	for (size_t i = 0; i < table->size; i++)
 	{
