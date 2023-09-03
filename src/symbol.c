@@ -5,7 +5,7 @@
 symbol_T* init_symbol(symbol_E symbol, char* name)
 {
 	symbol_T* sym = malloc(sizeof(symbol_T));
-	sym->symbol = symbol;
+	sym->category = symbol;
 	sym->name = name;
 
 	return sym;
@@ -24,7 +24,7 @@ char* symbol_to_string(symbol_T* symbol)
 {
 	char* s = malloc(sizeof(char));
 
-	switch (symbol->symbol) 
+	switch (symbol->category) 
 	{
 		case SYM_BUILTIN_TYPE:
 			sprintf(s, "%s", symbol->name);

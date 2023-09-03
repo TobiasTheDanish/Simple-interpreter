@@ -36,21 +36,21 @@ void sym_table_add(sym_table_T* table, symbol_T* symbol)
 
 option_T* sym_table_get(sym_table_T* table, char* name)
 {
+	printf("Lookup: %s\n", name);  
 	option_T* option = calloc(1, sizeof(option_T));
 
 	for (size_t i = 0; i < table->size; i++)
 	{
-		if (strcmp(table->symbols[i]->name, name) == 0) 
-		{
+		if (strcmp(table->symbols[i]->name, name) == 0) {
 			option->type = Value;
 			option->val.val = table->symbols[i];
 			return option;
 		}
 	}
 
-	option->type = Err;
 	option->val.err = malloc(sizeof(char));
-	sprintf(option->val.err, "Unknown symbol: '%s'.\n", name);
+	option->type = Err;
+	sprintf(option->val.err, "Attempt to access undeclared variable: '%s'\n", name);
 	return option;
 }
 

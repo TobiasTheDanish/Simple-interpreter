@@ -35,7 +35,7 @@ void visit_procdecl(interpreter_T* i, ast_node_T* node)
 	decl_node_T* decl = (decl_node_T*) node;
 	procdecl_node_T* proc = decl->node->proc;
 
-	printf("[visit_procdecl]: Procedure named '%s'\n", proc->name);
+	//printf("[visit_procdecl]: Procedure named '%s'\n", proc->name);
 
 	N_visit(i, proc->block);
 }
@@ -82,7 +82,7 @@ num_T visit_var(interpreter_T* i, ast_node_T* node)
 			return val;
 
 		case Err:
-			printf("[ERROR]: %s\n", opt->val.err);
+			printf("[ERROR: visit_var]: %s\n", opt->val.err);
 			list_map_free(i->global_scope);
 			free(i);
 			exit(1);

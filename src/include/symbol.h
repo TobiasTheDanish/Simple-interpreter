@@ -16,7 +16,7 @@ typedef enum BUILTIN_TYPES_ENUM
 
 typedef struct SYMBOL_BASE_STRUCT
 {
-	symbol_E symbol;
+	symbol_E category;
 	char* name;
 } symbol_T;
 

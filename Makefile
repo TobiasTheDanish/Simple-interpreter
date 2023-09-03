@@ -14,7 +14,7 @@ install:
 	make
 	cp ./interpreter.out /usr/local/bin/myLang
 
-clean: 
+clean:
 	-rm *.out
 	-rm *.o
 	-rm src/*.o
@@ -22,3 +22,8 @@ clean:
 rebuild:
 	make clean
 	make
+
+run:
+	make rebuild
+	clear
+	./$(exec)

@@ -91,7 +91,7 @@ void S_visit_assign(sym_table_visitor_T* visitor, ast_node_T* node)
 			break;
 
 		case Err:
-			printf("[ERROR]: Assigning value to variable '%s': %s\n", sym_name, opt->val.err);
+			printf("[ERROR: S_visit_assign]: Assigning value to variable '%s': %s\n", sym_name, opt->val.err);
 			exit(1);
 	}
 }
@@ -110,7 +110,7 @@ void S_visit_var(sym_table_visitor_T* visitor, ast_node_T* node)
 			break;
 
 		case Err:
-			printf("[ERROR]: %s have not been declared.\n", opt->val.err);
+			printf("[ERROR: S_visit_var]: %s", opt->val.err);
 			exit(1);
 	}
 }
