@@ -48,9 +48,9 @@ option_T* sym_table_get(sym_table_T* table, char* name)
 		}
 	}
 
-	option->val.err = malloc(sizeof(char));
+	option->val.err = malloc(100 * sizeof(char));
 	option->type = Err;
-	sprintf(option->val.err, "Attempt to access undeclared variable: '%s'\n", name);
+	sprintf(option->val.err, "Attempt to access undeclared symbol: '%s'\n", name);
 	return option;
 }
 

@@ -47,12 +47,19 @@ void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 			{
 				symbol_T* type_sym = option->val.val;
 
-				printf("[S_visit_vardecl] Adding %zu var declarations with type: %s\n", var->count, type_sym->name);
+				//printf("[S_visit_vardecl] Adding %zu var declarations with type: %s\n", var->count, type_sym->name);
 
 				for (size_t i = 0; i < var->count; i++)
 				{
 					//printf("[S_visit_vardecl] i:%zu\n", i);
 					char* name = var->var[i]->name;
+					option_T* var = sym_table_get(visitor->symbols, name);
+
+					if (var->type == Value) {
+						printf("[ERROR]: Variable redeclaration. '%s' already exists.\n", name);
+						exit(1);
+					}
+					
 					sym_table_add(visitor->symbols, init_var_symbol(name, type_sym));
 				}
 			}
@@ -91,7 +98,7 @@ void S_visit_assign(sym_table_visitor_T* visitor, ast_node_T* node)
 			break;
 
 		case Err:
-			printf("[ERROR: S_visit_assign]: Assigning value to variable '%s': %s\n", sym_name, opt->val.err);
+			printf("[ERROR S_visit_assign(): Assigning value to variable '%s']: %s", sym_name, opt->val.err);
 			exit(1);
 	}
 }
@@ -110,7 +117,7 @@ void S_visit_var(sym_table_visitor_T* visitor, ast_node_T* node)
 			break;
 
 		case Err:
-			printf("[ERROR: S_visit_var]: %s", opt->val.err);
+			printf("[ERROR S_visit_var()]: %s", opt->val.err);
 			exit(1);
 	}
 }

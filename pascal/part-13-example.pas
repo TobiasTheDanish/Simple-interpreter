@@ -1,6 +1,6 @@
-program SymTab4;
-    var x, y : integer;
-
+program SymTab6;
+   var x, y : integer;
+   y : real;
 begin
-    x := x + y;
+   x := x + y;
 end.

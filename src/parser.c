@@ -250,6 +250,7 @@ void P_eat(parser_T* parser, int token_type)
 	else 
 	{
 		printf("Unexpected token type, when trying to eat. Expected type: %d found: %d\n", token_type, parser->current_token->type);
+		exit(1);
 	}
 }
 
@@ -392,7 +393,7 @@ ast_node_T* P_declarations(parser_T* parser)
 	decl_node_T** declarations = malloc(sizeof(decl_node_T*));
 	size_t count = 0;
 
-	if (parser->current_token->type == T_VAR) 
+	while (parser->current_token->type == T_VAR) 
 	{
 		P_eat(parser, T_VAR);
 
