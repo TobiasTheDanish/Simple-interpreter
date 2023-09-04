@@ -3,9 +3,8 @@ program Main;
 
    procedure Alpha(a : integer);
       var y : integer;
-
    begin
-
+      x := b + x + y;
    end;
 
 begin { Main }

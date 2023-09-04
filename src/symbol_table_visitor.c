@@ -10,7 +10,7 @@
 sym_table_visitor_T* init_sym_table_visitor()
 {
 	sym_table_visitor_T* visitor = calloc(1, sizeof(sym_table_visitor_T));
-	visitor->scope = calloc(1, sizeof(scoped_sym_table_T));
+	visitor->scope = (void*)0;
 
 	return visitor;
 }
@@ -19,16 +19,18 @@ void S_visit_program(sym_table_visitor_T* visitor, ast_node_T* node)
 {
 	program_node_T* prog = (program_node_T*) node;
 
-	printf("Enter scope: 'global'");
+	printf("Enter scope: 'global'\n");
 
-	scoped_sym_table_T* global = init_sym_table("global", 1);
-	init_builtin_symbols(global);
+	scoped_sym_table_T* global = init_sym_table("global", 1, visitor->scope);
 	visitor->scope = global;
+
+	init_builtin_symbols(visitor->scope);
 
 	S_visit(visitor, (ast_node_T*) prog->block);
 
 	sym_table_print(global);
-	printf("Leave scope: 'global'");
+	visitor->scope = visitor->scope->enclosing_scope;
+	printf("Leave scope: 'global'\n");
 }
 
 void S_visit_block(sym_table_visitor_T* visitor, ast_node_T* node)
@@ -62,12 +64,14 @@ void S_visit_vardecl(sym_table_visitor_T* visitor, ast_node_T* node)
 				{
 					//printf("[S_visit_vardecl] i:%zu\n", i);
 					char* name = var->var[i]->name;
+					/*
 					option_T* var = sym_table_get(visitor->scope, name);
 
 					if (var->type == Value) {
 						printf("[ERROR]: Variable redeclaration. '%s' already exists.\n", name);
 						exit(1);
 					}
+					*/
 					
 					sym_table_add(visitor->scope, init_var_symbol(name, type_sym));
 				}
@@ -89,7 +93,7 @@ void S_visit_procdecl(sym_table_visitor_T* visitor, ast_node_T* node)
 	sym_table_add(visitor->scope, (symbol_T*)proc_symbol);
 
 	printf("Enter scope: '%s'\n", proc->name);
-	scoped_sym_table_T* proc_scope = init_sym_table(proc->name, visitor->scope->level + 1);
+	scoped_sym_table_T* proc_scope = init_sym_table(proc->name, visitor->scope->level + 1, visitor->scope);
 	visitor->scope = proc_scope;
 
 	printf("param count: %zu\n", proc->param_count);
@@ -122,6 +126,9 @@ void S_visit_procdecl(sym_table_visitor_T* visitor, ast_node_T* node)
 	S_visit(visitor, proc->block);
 
 	sym_table_print(proc_scope);
+
+	visitor->scope = visitor->scope->enclosing_scope;
+
 	printf("Leave scope: '%s'\n", proc->name);
 }
 

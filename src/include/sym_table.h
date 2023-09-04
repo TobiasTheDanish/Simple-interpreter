@@ -12,11 +12,12 @@ typedef struct SCOPED_SYMBOL_TABLE_STRUCT
 	int8_t level;
 	symbol_T** symbols;
 	size_t size;
+	struct SCOPED_SYMBOL_TABLE_STRUCT* enclosing_scope;
 } scoped_sym_table_T;
 
 void init_builtin_symbols(scoped_sym_table_T* table);
 
-scoped_sym_table_T* init_sym_table(char* name, int8_t level);
+scoped_sym_table_T* init_sym_table(char* name, int8_t level, scoped_sym_table_T* enclosing_scope);
 
 void sym_table_add(scoped_sym_table_T* table, symbol_T* symbol);
 

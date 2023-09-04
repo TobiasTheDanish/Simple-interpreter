@@ -244,7 +244,7 @@ void P_eat(parser_T* parser, int token_type)
 {
 	if (parser->current_token->type == token_type) 
 	{
-		printf("%s\n", token_as_string(parser->current_token));
+		//printf("%s\n", token_as_string(parser->current_token));
 		parser->current_token = P_get_next_token(parser);
 	}
 	else 
