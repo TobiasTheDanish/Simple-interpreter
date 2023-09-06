@@ -184,6 +184,11 @@ num_T visit_bin_op(interpreter_T* i, ast_node_T* node)
 			printf("Non implemented operation for bin_op node: (type: %d, val: %s)\n", bin->t->type, bin->t->value);
 			exit(1);
 	}
+
+}
+
+void visit_param(interpreter_T* i, ast_node_T* node) 
+{
 }
 
 num_T N_visit(interpreter_T* i, ast_node_T* node)
@@ -205,6 +210,10 @@ num_T N_visit(interpreter_T* i, ast_node_T* node)
 
 		case PROCDECL:
 			visit_procdecl(i, node);
+			break;
+
+		case PARAM:
+			visit_param(i, node);
 			break;
 
 		case TYPE_SPEC:

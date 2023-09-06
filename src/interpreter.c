@@ -3,6 +3,7 @@
 #include "include/list_map.h"
 #include "include/node_visitor.h"
 #include "include/parser.h"
+#include "include/source_to_source_compiler.h"
 #include "include/sym_table.h"
 #include "include/symbol_table_visitor.h"
 #include <stdio.h>
@@ -23,6 +24,10 @@ int I_run(interpreter_T* i)
 	ast_node_T* root = P_parse(i->p);
 
 	S_visit(i->sym_visitor, root);
+
+	src_2_src_compiler_T* compiler = init_src_to_src_compiler();
+	SRC_visit(compiler, root);
+	printf("source to source compiler output:\n%s", compiler->output);
 
 	N_visit(i, root);
 
