@@ -1,6 +1,4 @@
 #include "include/symbol_table_visitor.h"
-#include "include/ast_node.h"
-#include "include/sym_table.h"
 #include "include/symbol.h"
 #include "include/types.h"
 #include <stddef.h>
